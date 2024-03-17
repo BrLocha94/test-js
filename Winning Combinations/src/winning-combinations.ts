@@ -2,9 +2,16 @@
 type WinningCombinationsResult = [number, number[]][];
 type AuxiliarHash = {[key:number]:number[]}
 
+const minimumAmountToPayline : number = 3;
 const wildSymbol : number = 0;
 const payableSymbols : number[] = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 
+/**
+ * This function uses the auxiliar structure to process the passing lines
+ * ANY NON payable symbol will be removed on this
+ * @param lines Array of numbers representing each symbol value on each column. Ex: [1, 0, 2, 3, 3, 3]
+ * @returns AuxiliarHash with all valid symbols
+ */
 function preProcessLine(lines: number[]): AuxiliarHash{
   const hash :AuxiliarHash = {}
 
@@ -23,13 +30,21 @@ function preProcessLine(lines: number[]): AuxiliarHash{
   return hash;
 }
 
-function checkWinningCombinations(hash : AuxiliarHash) : WinningCombinationsResult{
+/**
+ * This function Receives the processed line information and transform it to an object of WinningCombinationsResult
+ * @param hash Auxiliar structure preprocessed with line informations
+ * @param lineSize The original number of coluns on the checked line
+ * @returns WinningCombinationsResult object with the valid paylines
+ */
+function checkWinningCombinations(hash : AuxiliarHash, lineSize : number) : WinningCombinationsResult{
   let keys = Object.keys(hash);
   const combinations : WinningCombinationsResult = [];
 
-  // Line composed only by wild symbol
-  if(keys.length == 1 && parseInt(keys[0]) === wildSymbol){
-    combinations.push([wildSymbol, hash[wildSymbol]]);
+  const firstKey = parseInt(keys[0]);
+
+  // Line composed only by one symbol
+  if(keys.length == 1 && hash[firstKey].length == lineSize){
+    combinations.push([firstKey, hash[firstKey]]);
     return combinations;
   }
 
@@ -83,7 +98,7 @@ function checkWinningCombinations(hash : AuxiliarHash) : WinningCombinationsResu
     }
 
     // Remove arrays without minimum size to form an payline
-    if(majorSequence.length >= 3){
+    if(majorSequence.length >= minimumAmountToPayline){
       combinations.push([parsedKey, majorSequence]);
     }
   });
@@ -95,7 +110,7 @@ function checkWinningCombinations(hash : AuxiliarHash) : WinningCombinationsResu
 function call(lines: number[]): WinningCombinationsResult {
 
   const hash = preProcessLine(lines);
-  const processedCombinations = checkWinningCombinations(hash);
+  const processedCombinations = checkWinningCombinations(hash, lines.length);
 
   return processedCombinations;
 }
