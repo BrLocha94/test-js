@@ -73,11 +73,49 @@ const gameRounds: RoundsSymbols = {
  */
 const slotMachineCadences: RoundsCadences = { roundOne: [], roundTwo: [], roundThree: [] };
 
+/**
+ * This function returns the current cadence for every index based on the anticipation points
+ * @param index symbols array index
+ * @param startPoint anticipation start index
+ * @param endPoint anticipation end index
+ * @returns number to be added on the current slot cadence
+ */
 function getCurrentCadence(index: number, startPoint: number, endPoint: number) : number{
   if(index >= endPoint || index < startPoint)
     return anticipatorConfig.defaultCadence;
 
   return anticipatorConfig.anticipateCadence;
+}
+
+/**
+ * Checks if any Array<SlotCoordinate> has the minimum conditions to trigger the anticipation effect
+ * @param symbols Array<SlotCoordinate> positions of the special symbols. Example: [{ column: 0, row: 2 }, { column: 2, row: 3 }]
+ * @returns boolean indicating if the @param symbols will trigger the effect
+ */
+function hasAnticipation(symbols: Array<SlotCoordinate>): boolean{
+  return symbols.length >= anticipatorConfig.minToAnticipate;
+}
+
+/**
+ * Returns on witch column the anticipation will start
+ * @param symbols  Array<SlotCoordinate> positions of the special symbols. Example: [{ column: 0, row: 2 }, { column: 2, row: 3 }]
+ * @returns number representing the target symbol column that will trigger the anticipation
+ */
+function getAnticipationStartPoint(symbols: Array<SlotCoordinate>) : number{
+  return symbols[anticipatorConfig.minToAnticipate - 1].column;
+}
+
+/**
+ * Returns on witch column the anticipation will end
+ * If cant end anticipation, will return the index of the last slots columns 
+ * @param symbols Array<SlotCoordinate> positions of the special symbols. Example: [{ column: 0, row: 2 }, { column: 2, row: 3 }]
+ * @returns number representing the target symbol column that will end the anticipation
+ */
+function getAnticipationEndPoint(symbols: Array<SlotCoordinate>) : number{
+  if(symbols.length >= anticipatorConfig.maxToAnticipate)
+    return symbols[anticipatorConfig.maxToAnticipate - 1].column
+
+  return  anticipatorConfig.columnSize;
 }
 
 /**
@@ -89,30 +127,16 @@ function getCurrentCadence(index: number, startPoint: number, endPoint: number) 
  */
 function slotCadence(symbols: Array<SlotCoordinate>): SlotCadence {
  
-  //console.log('Symbols ', symbols);
-
   const cadenceArray : number[] = []
   let cadence : number = 0;
 
   //Factor to add cadence
   let extraCadence = anticipatorConfig.defaultCadence;
   
-  //Check if there is any anticipation
-  const hasAnticipation = symbols.length >= anticipatorConfig.minToAnticipate;
+  if(hasAnticipation(symbols)){
 
-  //console.log('Has anticipation ', hasAnticipation);
-
-  if(hasAnticipation){
-    //Anticipation start point
-    const startPoint = symbols[anticipatorConfig.minToAnticipate - 1].column;
-
-    //console.log('Start point ', startPoint);
-
-    //Anticipation end point
-    const endPoint = symbols.length >= anticipatorConfig.maxToAnticipate ? 
-                        symbols[anticipatorConfig.maxToAnticipate - 1].column : anticipatorConfig.columnSize;
-
-    //console.log('End point ', endPoint);
+    const startPoint = getAnticipationStartPoint(symbols);
+    const endPoint = getAnticipationEndPoint(symbols);
 
     for (let i = 0; i < anticipatorConfig.columnSize; i++) {
       cadenceArray.push(cadence);
