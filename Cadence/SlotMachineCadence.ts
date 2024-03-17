@@ -73,6 +73,13 @@ const gameRounds: RoundsSymbols = {
  */
 const slotMachineCadences: RoundsCadences = { roundOne: [], roundTwo: [], roundThree: [] };
 
+function getCurrentCadence(index: number, startPoint: number, endPoint: number) : number{
+  if(index >= endPoint || index < startPoint)
+    return anticipatorConfig.defaultCadence;
+
+  return anticipatorConfig.anticipateCadence;
+}
+
 /**
  * This function receives an array of coordinates relative to positions in the slot machine's matrix.
  * This array is the positions of the special symbols.
@@ -81,8 +88,46 @@ const slotMachineCadences: RoundsCadences = { roundOne: [], roundTwo: [], roundT
  * @returns SlotCadence Array of numbers representing the slot machine stop cadence.
  */
 function slotCadence(symbols: Array<SlotCoordinate>): SlotCadence {
-  // Magic
-  return [];
+ 
+  //console.log('Symbols ', symbols);
+
+  const cadenceArray : number[] = []
+  let cadence : number = 0;
+
+  //Factor to add cadence
+  let extraCadence = anticipatorConfig.defaultCadence;
+  
+  //Check if there is any anticipation
+  const hasAnticipation = symbols.length >= anticipatorConfig.minToAnticipate;
+
+  //console.log('Has anticipation ', hasAnticipation);
+
+  if(hasAnticipation){
+    //Anticipation start point
+    const startPoint = symbols[anticipatorConfig.minToAnticipate - 1].column;
+
+    //console.log('Start point ', startPoint);
+
+    //Anticipation end point
+    const endPoint = symbols.length >= anticipatorConfig.maxToAnticipate ? 
+                        symbols[anticipatorConfig.maxToAnticipate - 1].column : anticipatorConfig.columnSize;
+
+    //console.log('End point ', endPoint);
+
+    for (let i = 0; i < anticipatorConfig.columnSize; i++) {
+      cadenceArray.push(cadence);
+      extraCadence = getCurrentCadence(i, startPoint, endPoint);
+      cadence += extraCadence;
+    }
+  }
+  else{
+    for (let i = 0; i < anticipatorConfig.columnSize; i++) {
+      cadenceArray.push(cadence);
+      cadence += extraCadence;
+    }
+  }
+
+  return cadenceArray;
 }
 
 /**
